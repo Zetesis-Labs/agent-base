@@ -82,7 +82,23 @@ Then reference the hook and statusline in `settings.json`:
 }
 ```
 
-See `examples/` for an agent definition in the expected format.
+## Agents included
+
+`agents/` ships ready-to-use agents in Claude Code format — `sync-agents.py`
+publishes them to the other CLIs like any of yours:
+
+| Agent | What it does |
+|---|---|
+| `code-reviewer` | reviews the branch diff against your house rules (encoded in the prompt — edit them to match yours) and hunts bugs, reporting only ≥80% confidence findings |
+| `silent-failure-hunter` | hunts places where errors vanish silently: empty catches, unchecked fetch, fallbacks hiding bugs, streams swallowing errors |
+| `pr-test-analyzer` | catalogs which behaviors in a PR deserve tests, prioritized by risk (P0 money/auth/data-integrity → P3 UI) |
+| `commit-prep` | turns raw changes into atomic conventional commits with a full PR description |
+| `docs-updater` | brings the repo docs (CLAUDE.md, READMEs, architecture docs) in line with the code after a change |
+| `memory-gardener` | audits the persistent memory this repo's layout defines: stale or false memories (verified against disk), duplicates, broken indexes |
+
+These are copies, not symlinks, on purpose: Claude Code appends
+machine-specific sections (agent memory paths) to agent files in
+`~/.claude/agents/`, so a live link would leak local paths into this repo.
 
 Code comments are in Spanish.
 
