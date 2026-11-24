@@ -53,6 +53,13 @@ ANTIGRAVITY_CFG = HOME / ".gemini/config/skills.json"
 RE_NOMBRE_CODEX = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 MARCA = "<!-- generado por agent-base (sync-agents.py) — no editar aquí -->"
+# Versiones anteriores del script firmaban con otro nombre; sin reconocerlas,
+# sus copias se toman por ajenas y no se vuelven a actualizar nunca.
+RE_MARCA = re.compile(r"<!-- generado por .*sync-agents\.py.* — no editar aquí -->")
+
+
+def es_nuestro(texto):
+    return RE_MARCA.search(texto) is not None
 
 # Herramientas de escritura de opencode, verificadas contra su binario 1.18.15.
 ESCRITURA_OPENCODE = ("write", "edit", "patch")
@@ -161,7 +168,7 @@ def publicar_opencode(agentes, seco):
     hechos, avisos = [], []
     for nombre, campos, cuerpo in agentes:
         destino = OPENCODE / f"{nombre}.md"
-        if destino.exists() and MARCA not in destino.read_text():
+        if destino.exists() and not es_nuestro(destino.read_text()):
             avisos.append(f"{destino.name}: existe y no lo generamos nosotros")
             continue
         if not seco:
@@ -171,7 +178,7 @@ def publicar_opencode(agentes, seco):
     vivos = {h.split(" (")[0] for h in hechos}
     retirados = []
     for viejo in sorted(OPENCODE.glob("*.md")):
-        if viejo.stem not in vivos and MARCA in viejo.read_text():
+        if viejo.stem not in vivos and es_nuestro(viejo.read_text()):
             retirados.append(viejo.stem)
             if not seco:
                 viejo.unlink()
@@ -186,7 +193,7 @@ def publicar_codex(agentes, seco):
             avisos.append(f"{nombre}: Codex exige hyphen-case, se omite")
             continue
         skill = CODEX / nombre / "SKILL.md"
-        if skill.exists() and MARCA not in skill.read_text():
+        if skill.exists() and not es_nuestro(skill.read_text()):
             avisos.append(f"{nombre}: ya existe una skill que no generamos nosotros")
             continue
         if not seco:
@@ -197,7 +204,7 @@ def publicar_codex(agentes, seco):
     vivos = {h.split(" (")[0] for h in hechos}
     retirados = []
     for viejo in sorted(p for p in CODEX.glob("*/SKILL.md")):
-        if viejo.parent.name not in vivos and MARCA in viejo.read_text():
+        if viejo.parent.name not in vivos and es_nuestro(viejo.read_text()):
             retirados.append(viejo.parent.name)
             if not seco:
                 viejo.unlink()
@@ -254,7 +261,7 @@ def montar_codex(seco):
                 destino.unlink()
         elif destino.exists():
             skill = destino / "SKILL.md"
-            propio = skill.is_file() and MARCA in skill.read_text()
+            propio = skill.is_file() and es_nuestro(skill.read_text())
             if not propio:
                 ajenos.append(nombre)
                 continue
